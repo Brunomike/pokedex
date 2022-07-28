@@ -2,6 +2,7 @@ package com.michaelbruno.tech.pokedex.presentation.pokemondetail
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -19,10 +20,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -31,6 +34,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.annotation.ExperimentalCoilApi
+import coil.compose.ImagePainter
+import coil.compose.rememberImagePainter
+import coil.request.ImageRequest
 import com.google.accompanist.coil.CoilImage
 import com.michaelbruno.tech.pokedex.data.remote.responses.Pokemon
 import com.michaelbruno.tech.pokedex.data.remote.responses.Type
@@ -42,6 +49,7 @@ import com.michaelbruno.tech.pokedex.util.parseStatToColor
 import java.util.*
 import kotlin.math.round
 
+@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun PokemonDetailScreen(
     dominantColor: Color,
@@ -100,6 +108,29 @@ fun PokemonDetailScreen(
         ) {
             if (pokemonInfo is Resource.Success) {
                 pokemonInfo.data?.sprites?.let {
+                    val painter = rememberImagePainter(
+                        data = it.front_default,
+                    )
+
+                    val painterState = painter.state
+                    if (painterState is ImagePainter.State.Loading) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colors.primary,
+                            modifier = Modifier
+                                .scale(0.5f)
+                                .offset(y = topPadding)
+                        )
+                    }
+
+                    Image(
+                        painter = painter,
+                        contentDescription = pokemonInfo.data.name,
+                        modifier = Modifier
+                            .size(pokemonImageSize)
+                            .offset(y = topPadding)
+                    )
+
+
 //                    CoilImage(
 //                        data = it.front_default,
 //                        contentDescription = pokemonInfo.data.name,

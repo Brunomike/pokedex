@@ -90,7 +90,7 @@ class PokemonListViewModel @Inject constructor(
                     loadError.value = ""
                     isLoading.value = false
                     pokemonList.value += pokedexEntries
-                    Log.d("POKEMON_LIST_FETCHED", pokemonList.value.toString())
+                    //Log.d("POKEMON_LIST_FETCHED", pokemonList.value.toString())
                 }
                 is Resource.Error -> {
                     loadError.value = result.message!!

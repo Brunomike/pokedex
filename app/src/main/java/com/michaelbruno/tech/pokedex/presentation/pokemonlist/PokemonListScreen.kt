@@ -30,11 +30,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.annotation.ExperimentalCoilApi
+import coil.compose.ImagePainter
+import coil.compose.rememberImagePainter
 import coil.request.ImageRequest
 import com.google.accompanist.coil.CoilImage
 import com.michaelbruno.tech.pokedex.R
 import com.michaelbruno.tech.pokedex.data.models.PokedexListEntry
 import com.michaelbruno.tech.pokedex.ui.theme.RobotoCondensed
+import kotlin.math.log
 
 @Composable
 fun PokemonListScreen(
@@ -138,7 +142,7 @@ fun PokemonList(
                     viewModel.loadPokemonPaginated()
                 }
             }
-            Log.d("ITEM_ROWINDEX", it.toString())
+            //Log.d("ITEM_ROWINDEX", it.toString())
             PokedexRow(rowIndex = it, entries = pokemonList, navController = navController)
         }
     }
@@ -154,6 +158,7 @@ fun PokemonList(
     }
 }
 
+@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun PokedexEntry(
     entry: PokedexListEntry,
@@ -186,6 +191,49 @@ fun PokedexEntry(
             }
     ) {
         Column {
+            val painter = rememberImagePainter(
+                data = entry.imageUrl,
+                builder = {
+                    Log.d("BUILDER", this.toString())
+//                    try {
+//                        this.target {
+//                            Log.d("BUILDER-DRAWABLE" ,it.toString())
+//                        }
+//                    }catch (e:Exception){
+//                        Log.d("DRAWABLE-EXCEPTION", e.toString())
+//                    }
+
+                }
+            )
+
+            val painterState = painter.state
+            when (painterState) {
+                is ImagePainter.State.Loading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    ) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colors.primary,
+                            modifier = Modifier
+                                .scale(0.5f)
+                                .align(Alignment.Center)
+                        )
+                    }
+                }
+                is ImagePainter.State.Success->{
+                    painter
+                }
+            }
+
+            Image(
+                painter = painter,
+                contentDescription = entry.pokemonName,
+                modifier = Modifier
+                    .size(120.dp)
+                    .align(CenterHorizontally)
+            )
 //            CoilImage(
 //                request = ImageRequest.Builder(LocalContext.current)
 //                    .data(entry.imageUrl)
