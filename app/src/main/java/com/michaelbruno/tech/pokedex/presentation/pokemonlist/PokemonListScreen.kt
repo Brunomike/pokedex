@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.isSpecified
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -30,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import coil.Coil
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.ImagePainter
 import coil.compose.rememberImagePainter
@@ -170,7 +172,8 @@ fun PokedexEntry(
     var dominantColor by remember {
         mutableStateOf(defaultDominantColor)
     }
-    Log.d("IMAGE_URL", entry.imageUrl)
+    val isLoading by remember { viewModel.isImageLoading }
+
     Box(
         modifier = modifier
             .shadow(5.dp, RoundedCornerShape(10.dp))
@@ -193,18 +196,14 @@ fun PokedexEntry(
         Column {
             val painter = rememberImagePainter(
                 data = entry.imageUrl,
-                builder = {
-                    Log.d("BUILDER", this.toString())
-//                    try {
-//                        this.target {
-//                            Log.d("BUILDER-DRAWABLE" ,it.toString())
-//                        }
-//                    }catch (e:Exception){
-//                        Log.d("DRAWABLE-EXCEPTION", e.toString())
-//                    }
-
-                }
             )
+            val req = ImageRequest.Builder(LocalContext.current)
+                .data(entry.imageUrl)
+                .allowHardware(false)
+                .build()
+
+            val loadImage = viewModel.loadImage(req)
+
 
             val painterState = painter.state
             when (painterState) {
@@ -212,7 +211,7 @@ fun PokedexEntry(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f)
+                            .align(CenterHorizontally)
                     ) {
                         CircularProgressIndicator(
                             color = MaterialTheme.colors.primary,
@@ -222,8 +221,11 @@ fun PokedexEntry(
                         )
                     }
                 }
-                is ImagePainter.State.Success->{
-                    painter
+                is ImagePainter.State.Success -> {
+                    if (!isLoading && loadImage.dominantColor != null) {
+                        dominantColor = loadImage.dominantColor!!
+                    }
+
                 }
             }
 
@@ -234,29 +236,6 @@ fun PokedexEntry(
                     .size(120.dp)
                     .align(CenterHorizontally)
             )
-//            CoilImage(
-//                request = ImageRequest.Builder(LocalContext.current)
-//                    .data(entry.imageUrl)
-//                    .target {
-//                        viewModel.calculateDominantColor(it) { color ->
-//                            dominantColor = color
-//                        }
-//                    }
-//                    .build(),
-//                contentDescription = entry.pokemonName,
-//                fadeIn = true,
-//                modifier = Modifier
-//                    .size(120.dp)
-//                    .align(CenterHorizontally),
-//                loading = {
-//                        CircularProgressIndicator(
-//                            color = MaterialTheme.colors.primary,
-//                            modifier = Modifier
-//                                .scale(0.5f)
-//                                .align(Alignment.Center)
-//                        )
-//                }
-//            )
 
             Text(
                 text = entry.pokemonName,

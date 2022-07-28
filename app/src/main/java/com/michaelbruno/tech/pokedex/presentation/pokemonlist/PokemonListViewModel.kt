@@ -1,15 +1,20 @@
 package com.michaelbruno.tech.pokedex.presentation.pokemonlist
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.capitalize
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.palette.graphics.Palette
+import coil.Coil
+import coil.request.ErrorResult
+import coil.request.ImageRequest
+import coil.request.SuccessResult
+import com.michaelbruno.tech.pokedex.data.models.Image
 import com.michaelbruno.tech.pokedex.data.models.PokedexListEntry
 import com.michaelbruno.tech.pokedex.respository.PokemonRepository
 import com.michaelbruno.tech.pokedex.util.Constants.PAGE_SIZE
@@ -30,6 +35,7 @@ class PokemonListViewModel @Inject constructor(
     var loadError = mutableStateOf("")
     var isLoading = mutableStateOf(false)
     var endReached = mutableStateOf(false)
+    var isImageLoading = mutableStateOf(false)
 
     private var cachedPokemonList = listOf<PokedexListEntry>()
     private var isSearchStarting = true
@@ -110,5 +116,28 @@ class PokemonListViewModel @Inject constructor(
                 onFinish(Color(colorValue))
             }
         }
+    }
+
+    fun loadImage(req: ImageRequest): Image {
+        //Log.d("LOADING", "Called")
+        val loadResult = Image()
+        viewModelScope.launch {
+            isImageLoading.value = true
+            when (val result = Coil.execute(req)) {
+                is SuccessResult -> {
+                    result.drawable
+                    loadResult.status = "success"
+                    loadResult.drawable=result.drawable
+
+                    isImageLoading.value = false
+                }
+                is ErrorResult -> {
+                    loadResult.status = "error"
+                    isImageLoading.value = false
+                }
+            }
+        }
+//        Log.d("END_LOAD2", loadResult.drawable.toString())
+        return loadResult
     }
 }
